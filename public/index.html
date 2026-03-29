@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity by SecurAIty</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0e1a;
+      --bg2: #111827;
+      --bg3: #1e293b;
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --purple: #a855f7;
+      --cyan: #06b6d4;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────── */
+    .header {
+      padding: 16px 24px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left h1 { font-size: 18px; font-weight: 800; }
+    .header-left h1 span { color: var(--cyan); }
+    .header-left .tag {
+      font-size: 10px; padding: 2px 8px; border-radius: 99px;
+      background: rgba(6,182,212,0.15); color: var(--cyan); font-weight: 600;
+    }
+    .connection-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+    .connection-dot.offline { background: var(--red); animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .stat-chip {
+      font-size: 12px; color: var(--text2);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .stat-chip strong { color: var(--text); font-weight: 700; }
+
+    /* ── Layout ─────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: calc(100vh - 57px);
+    }
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    /* ── Sidebar — Agents ───────────────── */
+    .sidebar {
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text3); margin-bottom: 12px; font-weight: 700;
+    }
+    .agent-card {
+      background: var(--bg3);
+      border-radius: 10px; padding: 14px;
+      margin-bottom: 10px; cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .agent-card:hover { border-color: var(--blue); }
+    .agent-card.active { border-color: var(--cyan); background: rgba(6,182,212,0.08); }
+    .agent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .agent-name { font-size: 14px; font-weight: 700; }
+    .agent-status {
+      font-size: 10px; padding: 2px 8px; border-radius: 99px;
+      font-weight: 600; text-transform: uppercase;
+    }
+    .agent-status.active { background: rgba(34,197,94,0.15); color: var(--green); }
+    .agent-status.idle { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .agent-status.offline { background: rgba(100,116,139,0.15); color: var(--text3); }
+    .agent-activity {
+      font-size: 12px; color: var(--text2); line-height: 1.5;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .agent-meta {
+      margin-top: 8px; display: flex; gap: 12px;
+      font-size: 11px; color: var(--text3);
+    }
+    .no-agents {
+      text-align: center; padding: 40px 16px; color: var(--text3);
+    }
+    .no-agents .big-icon { font-size: 48px; margin-bottom: 12px; }
+    .no-agents p { font-size: 13px; line-height: 1.6; }
+
+    /* ── Main Feed ──────────────────────── */
+    .main { padding: 20px 24px; overflow-y: auto; }
+    .feed-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .feed-header h2 { font-size: 16px; font-weight: 700; }
+    .filter-bar { display: flex; gap: 6px; }
+    .filter-btn {
+      font-size: 11px; padding: 4px 12px; border-radius: 99px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text3); cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: var(--text3); color: var(--text2); }
+    .filter-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); }
+
+    /* ── Event Card ─────────────────────── */
+    .event-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      animation: slideIn 0.3s ease;
+      transition: border-color 0.2s;
+    }
+    .event-card:hover { border-color: var(--bg3); }
+    .event-card.new { animation: highlight 1s ease; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes highlight {
+      0% { border-color: var(--cyan); box-shadow: 0 0 12px rgba(6,182,212,0.2); }
+      100% { border-color: var(--border); box-shadow: none; }
+    }
+    .event-top { display: flex; align-items: flex-start; gap: 10px; }
+    .event-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .event-body { flex: 1; min-width: 0; }
+    .event-plain { font-size: 14px; color: var(--text); line-height: 1.5; font-weight: 500; }
+    .event-meta {
+      margin-top: 4px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; color: var(--text3);
+    }
+    .event-agent { font-weight: 600; color: var(--text2); }
+    .event-label {
+      padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;
+    }
+    .event-label.blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .event-label.green { background: rgba(34,197,94,0.15); color: var(--green); }
+    .event-label.yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .event-label.red { background: rgba(239,68,68,0.15); color: var(--red); }
+    .event-label.purple { background: rgba(168,85,247,0.15); color: var(--purple); }
+    .event-label.gray { background: rgba(100,116,139,0.15); color: var(--text3); }
+    .event-time { white-space: nowrap; }
+
+    /* ── Setup Banner ───────────────────── */
+    .setup-banner {
+      margin-bottom: 16px; padding: 16px 20px;
+      background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(59,130,246,0.1));
+      border: 1px solid rgba(6,182,212,0.3);
+      border-radius: 12px;
+    }
+    .setup-banner h3 { font-size: 14px; margin-bottom: 6px; }
+    .setup-banner p { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; }
+    .setup-banner code {
+      display: block; padding: 8px 12px; background: rgba(0,0,0,0.4);
+      border-radius: 6px; font-size: 12px; color: var(--cyan);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .setup-btn {
+      margin-top: 10px; padding: 8px 20px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: white; font-weight: 700; cursor: pointer; font-size: 13px;
+    }
+    .setup-btn:hover { opacity: 0.9; }
+
+    /* ── Empty State ────────────────────── */
+    .empty-state {
+      text-align: center; padding: 80px 24px; color: var(--text3);
+    }
+    .empty-state .big-icon { font-size: 64px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; color: var(--text2); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; line-height: 1.6; max-width: 400px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>📊 Activity <span>by SecurAIty</span></h1>
+      <span class="tag">v0.1.0</span>
+      <div class="connection-dot" id="connectionDot"></div>
+    </div>
+    <div class="header-right">
+      <div class="stat-chip">Agents: <strong id="statAgents">0</strong></div>
+      <div class="stat-chip">Events: <strong id="statEvents">0</strong></div>
+      <div class="stat-chip">Last hour: <strong id="statHour">0</strong></div>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <div class="layout">
+    <!-- Sidebar: Agents -->
+    <aside class="sidebar">
+      <h2>Connected Agents</h2>
+      <div id="agentList">
+        <div class="no-agents">
+          <div class="big-icon">📡</div>
+          <p>Waiting for agents to connect...<br><br>Open any AI tool to see it here.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main: Activity Feed -->
+    <main class="main">
+      <div id="setupBanner" class="setup-banner">
+        <h3>🔗 Quick Setup — See Your AI Activity</h3>
+        <p>Click the button to auto-configure your machine. Every AI tool (Cursor, Claude Desktop, Python scripts) will route through Activity Monitor automatically.</p>
+        <code>export OPENAI_BASE_URL=http://localhost:3400/proxy/v1</code>
+        <button class="setup-btn" onclick="runSetup()">⚡ Auto-Connect All AI Tools</button>
+        <p id="setupResult" style="margin-top: 8px; font-size: 12px;"></p>
+      </div>
+
+      <div class="feed-header">
+        <h2>Live Activity Feed</h2>
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="llm">💬 LLM</button>
+          <button class="filter-btn" data-filter="file">📄 Files</button>
+          <button class="filter-btn" data-filter="process">💻 Commands</button>
+          <button class="filter-btn" data-filter="network">🌐 Network</button>
+          <button class="filter-btn" data-filter="tool">🔧 Tools</button>
+          <button class="filter-btn" data-filter="thought">🧠 Thinking</button>
+        </div>
+      </div>
+
+      <div id="eventFeed">
+        <div class="empty-state" id="emptyState">
+          <div class="big-icon">📡</div>
+          <h3>Waiting for activity...</h3>
+          <p>Use an AI tool and its activity will appear here in real-time, translated to plain English.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ── State ─────────────────────────────
+    let agents = {};
+    let events = [];
+    let activeFilter = 'all';
+    let selectedAgent = null;
+    let ws = null;
+    const MAX_EVENTS = 200;
+
+    // ── WebSocket ─────────────────────────
+    function connect() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+      ws.onopen = () => {
+        console.log('[WS] Connected');
+        document.getElementById('connectionDot').classList.remove('offline');
+      };
+
+      ws.onclose = () => {
+        console.log('[WS] Disconnected — reconnecting in 2s');
+        document.getElementById('connectionDot').classList.add('offline');
+        setTimeout(connect, 2000);
+      };
+
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+
+        if (msg.type === 'init') {
+          // Initial state
+          msg.agents.forEach(a => { agents[a.id] = a; });
+          events = msg.recentEvents || [];
+          updateStats(msg.stats);
+          renderAgents();
+          renderEvents();
+          return;
+        }
+
+        if (msg.type === 'activity') {
+          events.unshift(msg.event);
+          if (events.length > MAX_EVENTS) events = events.slice(0, MAX_EVENTS);
+
+          // Update agent
+          const agentId = msg.event.agentId;
+          if (agents[agentId]) {
+            agents[agentId].lastSeen = msg.event.timestamp;
+            agents[agentId].status = 'active';
+            agents[agentId].currentActivity = msg.event.plain;
+            agents[agentId].requestCount = (agents[agentId].requestCount || 0) + 1;
+          }
+
+          renderAgents();
+          addEventToFeed(msg.event, true);
+          updateStatsFromEvents();
+          return;
+        }
+
+        if (msg.type === 'agent:new') {
+          agents[msg.agent.id] = msg.agent;
+          renderAgents();
+          updateStatsFromEvents();
+          return;
+        }
+
+        if (msg.type === 'agent:idle') {
+          if (agents[msg.agent.id]) {
+            agents[msg.agent.id].status = 'idle';
+            agents[msg.agent.id].currentActivity = msg.agent.currentActivity;
+          }
+          renderAgents();
+        }
+      };
+    }
+
+    // ── Render Agents ─────────────────────
+    function renderAgents() {
+      const list = document.getElementById('agentList');
+      const agentArr = Object.values(agents);
+
+      if (agentArr.length === 0) {
+        list.innerHTML = `<div class="no-agents"><div class="big-icon">📡</div><p>Waiting for agents...<br><br>Open any AI tool.</p></div>`;
+        return;
+      }
+
+      // Sort: active first, then by lastSeen
+      agentArr.sort((a, b) => {
+        if (a.status === 'active' && b.status !== 'active') return -1;
+        if (b.status === 'active' && a.status !== 'active') return 1;
+        return new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime();
+      });
+
+      list.innerHTML = agentArr.map(a => `
+        <div class="agent-card ${selectedAgent === a.id ? 'active' : ''}" onclick="selectAgent('${a.id}')">
+          <div class="agent-header">
+            <span class="agent-name">${escapeHtml(a.name)}</span>
+            <span class="agent-status ${a.status}">${a.status}</span>
+          </div>
+          <div class="agent-activity">${escapeHtml(a.currentActivity || 'No activity yet')}</div>
+          <div class="agent-meta">
+            ${a.model ? `<span>🤖 ${escapeHtml(a.model)}</span>` : ''}
+            <span>📊 ${a.requestCount || 0} events</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectAgent(id) {
+      selectedAgent = selectedAgent === id ? null : id;
+      renderAgents();
+      renderEvents();
+    }
+
+    // ── Render Events ─────────────────────
+    function renderEvents() {
+      const feed = document.getElementById('eventFeed');
+      const empty = document.getElementById('emptyState');
+
+      let filtered = events;
+      if (selectedAgent) filtered = filtered.filter(e => e.agentId === selectedAgent);
+      if (activeFilter !== 'all') filtered = filtered.filter(e => e.category === activeFilter);
+
+      if (filtered.length === 0) {
+        feed.innerHTML = '';
+        feed.appendChild(empty);
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      feed.innerHTML = filtered.slice(0, 100).map(e => eventCardHTML(e)).join('');
+    }
+
+    function addEventToFeed(event, isNew) {
+      // Check filter
+      if (selectedAgent && event.agentId !== selectedAgent) return;
+      if (activeFilter !== 'all' && event.category !== activeFilter) return;
+
+      const feed = document.getElementById('eventFeed');
+      const empty = document.getElementById('emptyState');
+      if (empty) empty.style.display = 'none';
+
+      const div = document.createElement('div');
+      div.innerHTML = eventCardHTML(event, isNew);
+      const card = div.firstElementChild;
+
+      if (feed.firstChild) {
+        feed.insertBefore(card, feed.firstChild);
+      } else {
+        feed.appendChild(card);
+      }
+
+      // Trim old cards
+      while (feed.children.length > 100) {
+        feed.removeChild(feed.lastChild);
+      }
+    }
+
+    function eventCardHTML(e, isNew = false) {
+      const time = new Date(e.timestamp).toLocaleTimeString();
+      return `
+        <div class="event-card ${isNew ? 'new' : ''}">
+          <div class="event-top">
+            <span class="event-icon">${e.icon || '❓'}</span>
+            <div class="event-body">
+              <div class="event-plain">${escapeHtml(e.plain)}</div>
+              <div class="event-meta">
+                <span class="event-agent">${escapeHtml(e.agentName)}</span>
+                <span class="event-label ${e.color || 'gray'}">${escapeHtml(e.label)}</span>
+                <span class="event-time">${time}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Filters ───────────────────────────
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        renderEvents();
+      });
+    });
+
+    // ── Stats ─────────────────────────────
+    function updateStats(stats) {
+      document.getElementById('statAgents').textContent = stats.totalAgents;
+      document.getElementById('statEvents').textContent = stats.totalEvents;
+      document.getElementById('statHour').textContent = stats.eventsLastHour;
+    }
+
+    function updateStatsFromEvents() {
+      const now = Date.now();
+      document.getElementById('statAgents').textContent = Object.keys(agents).length;
+      document.getElementById('statEvents').textContent = events.length;
+      const lastHour = events.filter(e => (now - new Date(e.timestamp).getTime()) < 3600000).length;
+      document.getElementById('statHour').textContent = lastHour;
+    }
+
+    // ── Setup ─────────────────────────────
+    async function runSetup() {
+      const result = document.getElementById('setupResult');
+      result.textContent = '⏳ Configuring...';
+      try {
+        const r = await fetch('/api/setup/install', { method: 'POST' });
+        const data = await r.json();
+        result.innerHTML = data.results?.map(r => `<div>${r}</div>`).join('') || '✅ Done!';
+        if (data.success) {
+          setTimeout(() => {
+            document.getElementById('setupBanner').style.display = 'none';
+          }, 5000);
+        }
+      } catch (e) {
+        result.textContent = '❌ Error: ' + e.message;
+      }
+    }
+
+    // Check if already configured
+    fetch('/api/setup/status').then(r => r.json()).then(data => {
+      if (data.configured) {
+        document.getElementById('setupBanner').style.display = 'none';
+      }
+    }).catch(() => {});
+
+    // ── Helpers ───────────────────────────
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text || '';
+      return d.innerHTML;
+    }
+
+    // ── Connect! ──────────────────────────
+    connect();
+  </script>
+</body>
+</html>
