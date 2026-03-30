@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { activityMonitor } from '../services/activity-monitor';
 import { store } from '../services/database';
 import { sessionManager } from '../services/session-manager';
+import { stateMachine } from '../services/state-machine';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -155,6 +156,29 @@ router.post('/alerts/:id/resolve', (req, res) => {
 
 router.get('/db-stats', (_req, res) => {
   res.json(store.getStats());
+});
+
+// ─── GET /api/states ─────────────────────────────────────────────
+// Current state of all agents
+
+router.get('/states', (_req, res) => {
+  const states = stateMachine.getAllStates();
+  res.json({ states, total: states.length });
+});
+
+// ─── GET /api/states/:agentId ────────────────────────────────────
+
+router.get('/states/:agentId', (req, res) => {
+  const state = stateMachine.getState(req.params.agentId);
+  if (!state) return res.status(404).json({ error: 'Agent state not found' });
+  res.json({ state });
+});
+
+// ─── GET /api/states/:agentId/transitions ────────────────────────
+
+router.get('/states/:agentId/transitions', (req, res) => {
+  const transitions = stateMachine.getTransitions(req.params.agentId);
+  res.json({ transitions, total: transitions.length });
 });
 
 // ─── POST /api/setup/install ─────────────────────────────────────

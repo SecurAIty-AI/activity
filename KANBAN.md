@@ -27,18 +27,18 @@
 
 ---
 
-## ⬜ PHASE 2 — SQLite Persistence & Sessions
+## ✅ PHASE 2 — SQLite Persistence & Sessions
 > Wire the existing SQLite store to the activity monitor. All events persist. Sessions track agent work.
 
-- ⬜ 🔴 Wire database.ts into activity-monitor.ts (persist every event)
-- ⬜ 🔴 Auto-create sessions from proxy requests (group by agent + time gap)
-- ⬜ 🔴 Session lifecycle: started → running → idle → completed
-- ⬜ 🟠 Session API: GET /api/sessions, GET /api/sessions/:id, GET /api/sessions/:id/timeline
-- ⬜ 🟠 Event search: GET /api/events?q=search&type=&agent=&since=&until=
-- ⬜ 🟠 Load events from DB on server restart (survive restarts)
-- ⬜ 🟡 Session cost tracking (estimate from token counts)
-- ⬜ 🟡 30-day retention auto-cleanup on startup
-- ⬜ 🟢 Export session: GET /api/sessions/:id/export (JSON)
+- ✅ 🔴 Wire database.ts into activity-monitor.ts (persist every event)
+- ✅ 🔴 Auto-create sessions from proxy requests (group by agent + time gap)
+- ✅ 🔴 Session lifecycle: started → running → idle → completed
+- ✅ 🟠 Session API: GET /api/sessions, GET /api/sessions/:id, GET /api/sessions/:id/timeline
+- ✅ 🟠 Event search: GET /api/events?q=search&type=&agent=&since=&until=
+- ✅ 🟠 Load events from DB on server restart (survive restarts)
+- ✅ 🟡 Session cost tracking (estimate from token counts)
+- ✅ 🟡 30-day retention auto-cleanup on startup
+- ✅ 🟢 Export session: GET /api/sessions/:id/export (JSON)
 
 ---
 
@@ -157,10 +157,11 @@
 ---
 
 ## 📊 Project Stats
-- **Version:** 0.1.0
-- **Commits:** 2
-- **Files:** ~15
-- **Production code:** ~2,035 lines
-- **Test code:** 0 lines
-- **Tests:** 0
-- **Phases complete:** 1 of 11
+- **Version:** 0.2.0
+- **Commits:** 3
+- **Files:** ~25
+- **Production code:** ~3,300 lines
+- **Test code:** ~1,200 lines
+- **Tests:** 63
+- **Suites:** 4
+- **Phases complete:** 2 of 11

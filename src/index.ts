@@ -88,6 +88,34 @@ eventBus.on('agent:idle', (agent) => {
   }
 });
 
+eventBus.on('state:changed', (data) => {
+  const msg = JSON.stringify({ type: 'state:changed', ...data });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+});
+
+eventBus.on('alert:created', (data) => {
+  const msg = JSON.stringify({ type: 'alert:created', ...data });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+});
+
+eventBus.on('session:started', (data) => {
+  const msg = JSON.stringify({ type: 'session:started', ...data });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+});
+
+eventBus.on('session:ended', (data) => {
+  const msg = JSON.stringify({ type: 'session:ended', ...data });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+});
+
 // ─── Demo Seed (generates sample activity to see the UI working) ─
 
 function seedDemoData() {

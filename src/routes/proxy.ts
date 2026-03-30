@@ -17,6 +17,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { activityMonitor } from '../services/activity-monitor';
 import { sessionManager } from '../services/session-manager';
+import { stateMachine } from '../services/state-machine';
 
 export const proxyRouter = Router();
 
@@ -132,6 +133,10 @@ proxyRouter.post('/v1/chat/completions', async (req: Request, res: Response) => 
     userAgent: String(req.headers['user-agent'] || ''),
   });
 
+  // Update agent state: thinking (waiting for LLM response)
+  const sessionId = sessionManager.getOrCreateSession(agent.id, agent.name, model);
+  stateMachine.onProxyActivity(agent.id, agent.name, sessionId, 'request');
+
   // Forward to real API
   const { status, data, latencyMs } = await forwardRequest(req, `${REAL_OPENAI}/chat/completions`, 'openai');
 
@@ -174,6 +179,9 @@ proxyRouter.post('/v1/chat/completions', async (req: Request, res: Response) => 
       finishReason: data?.choices?.[0]?.finish_reason,
     },
   });
+
+  // Update agent state: executing (got response, now acting on it)
+  stateMachine.onProxyActivity(agent.id, agent.name, sessionId, 'response');
 
   res.status(status).json(data);
 });
@@ -248,6 +256,10 @@ proxyRouter.post('/v1/messages', async (req: Request, res: Response) => {
     userAgent: String(req.headers['user-agent'] || ''),
   });
 
+  // Update agent state: thinking
+  const anthSessionId = sessionManager.getOrCreateSession(agent.id, agent.name, model);
+  stateMachine.onProxyActivity(agent.id, agent.name, anthSessionId, 'request');
+
   const { status, data, latencyMs } = await forwardRequest(req, `${REAL_ANTHROPIC}/v1/messages`, 'anthropic');
 
   const respContent = data?.content?.[0]?.text || '';
@@ -282,6 +294,9 @@ proxyRouter.post('/v1/messages', async (req: Request, res: Response) => {
       outputTokens: data?.usage?.output_tokens || 0,
     },
   });
+
+  // Update agent state: executing
+  stateMachine.onProxyActivity(agent.id, agent.name, anthSessionId, 'response');
 
   res.status(status).json(data);
 });
