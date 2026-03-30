@@ -7,6 +7,7 @@ import { activityMonitor } from '../services/activity-monitor';
 import { store } from '../services/database';
 import { sessionManager } from '../services/session-manager';
 import { stateMachine } from '../services/state-machine';
+import { alertEngine } from '../services/alert-engine';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -179,6 +180,22 @@ router.get('/states/:agentId', (req, res) => {
 router.get('/states/:agentId/transitions', (req, res) => {
   const transitions = stateMachine.getTransitions(req.params.agentId);
   res.json({ transitions, total: transitions.length });
+});
+
+// ─── GET /api/alert-rules ────────────────────────────────────────
+
+router.get('/alert-rules', (_req, res) => {
+  res.json({ rules: alertEngine.getRules() });
+});
+
+// ─── PUT /api/alert-rules/:id ────────────────────────────────────
+
+router.put('/alert-rules/:id', (req, res) => {
+  const { enabled } = req.body;
+  if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'enabled must be boolean' });
+  const success = alertEngine.setRuleEnabled(req.params.id, enabled);
+  if (!success) return res.status(404).json({ error: 'Rule not found' });
+  res.json({ success: true });
 });
 
 // ─── POST /api/setup/install ─────────────────────────────────────

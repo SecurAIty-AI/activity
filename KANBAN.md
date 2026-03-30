@@ -42,15 +42,15 @@
 
 ---
 
-## ⬜ PHASE 3 — Agent State Machine
+## ✅ PHASE 3 — Agent State Machine
 > Track what agents are actually doing moment-to-moment.
 
-- ⬜ 🔴 Agent state machine: idle → planning → executing → waiting → thinking → tool_calling → verifying → completed
-- ⬜ 🔴 State change events: agent.state.changed with from/to
-- ⬜ 🟠 Infer state from proxy traffic (request = thinking, response = executing, gap = idle)
-- ⬜ 🟠 State timeline per session (array of state transitions with timestamps)
-- ⬜ 🟡 Stall detection (no activity for 5+ minutes → emit alert)
-- ⬜ 🟡 Dashboard: agent cards show current state with colored indicator
+- ✅ 🔴 Agent state machine: idle → planning → executing → waiting → thinking → tool_calling → verifying → completed
+- ✅ 🔴 State change events: agent.state.changed with from/to
+- ✅ 🟠 Infer state from proxy traffic (request = thinking, response = executing, gap = idle)
+- ✅ 🟠 State timeline per session (array of state transitions with timestamps)
+- ✅ 🟡 Stall detection (no activity for 5+ minutes → emit alert)
+- ⬜ 🟡 Dashboard: agent cards show current state with colored indicator (Phase 4)
 
 ---
 
