@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#7b2ff7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect x="40" y="40" width="944" height="944" rx="200" fill="url(#bg)"/>
+  <!-- Activity pulse line -->
+  <polyline points="180,512 320,512 380,340 440,680 500,420 560,600 620,380 680,512 840,512" 
+    fill="none" stroke="url(#accent)" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Eye/monitor circle -->
+  <circle cx="512" cy="512" r="220" fill="none" stroke="url(#accent)" stroke-width="24" opacity="0.3"/>
+  <!-- Center dot -->
+  <circle cx="512" cy="512" r="30" fill="#00d4ff"/>
+</svg>

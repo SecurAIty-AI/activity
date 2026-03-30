@@ -2,10 +2,12 @@
   "name": "activity-by-securaity",
   "version": "0.1.0",
   "description": "See what your AI agents are doing — in plain English",
-
+  "main": "electron/main.js",
   "scripts": {
     "dev": "npx tsx src/index.ts",
-    "build": "npx esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/server.js",
+    "build": "npx esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:better-sqlite3",
+    "start": "electron .",
+    "package": "npm run build && npx @electron/packager . \"Activity by SecurAIty\" --platform=darwin --arch=arm64 --icon=assets/icon.icns --out=build --overwrite --ignore=\"(src|tests|node_modules/(@types|typescript|vitest|tsx|esbuild)|tsconfig|vitest\\.config|\\.git$)\" --asar",
     "docker:build": "docker build -t activity-by-securaity .",
     "docker:run": "docker run -p 3400:3400 activity-by-securaity",
     "test": "vitest run"
