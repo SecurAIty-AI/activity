@@ -80,16 +80,16 @@
 
 ---
 
-## ⬜ PHASE 6 — Alerts & Risk Scoring
+## ✅ PHASE 6 — Alerts & Risk Scoring
 > Flag suspicious or noteworthy activity without blocking it.
 
-- ⬜ 🔴 Alert engine: configurable rules that trigger on event patterns
-- ⬜ 🔴 Built-in alerts: sensitive file access, unexpected domains, excessive writes, idle timeout, self-loop, high cost
-- ⬜ 🟠 Risk score per event (0-100) based on type + context
-- ⬜ 🟠 Alert API: GET /api/alerts, POST /api/alerts/:id/acknowledge, POST /api/alerts/:id/resolve
-- ⬜ 🟠 Dashboard: alert bell with count, alert feed panel
-- ⬜ 🟡 Alert severity: info, warn, error, critical
-- ⬜ 🟡 Configurable alert rules via API
+- ✅ 🔴 Alert engine: configurable rules that trigger on event patterns
+- ✅ 🔴 Built-in alerts: sensitive file access, unexpected domains, excessive writes, idle timeout, self-loop, high cost
+- ⬜ 🟠 Risk score per event (0-100) based on type + context (future)
+- ✅ 🟠 Alert API: GET /api/alerts, POST /api/alerts/:id/acknowledge, POST /api/alerts/:id/resolve
+- ⬜ 🟠 Dashboard: alert bell with count, alert feed panel (Phase 4)
+- ✅ 🟡 Alert severity: info, warn, error, critical
+- ✅ 🟡 Configurable alert rules via API (GET/PUT /alert-rules)
 
 ---
 
@@ -157,11 +157,11 @@
 ---
 
 ## 📊 Project Stats
-- **Version:** 0.2.0
-- **Commits:** 3
-- **Files:** ~25
-- **Production code:** ~3,300 lines
-- **Test code:** ~1,200 lines
-- **Tests:** 63
-- **Suites:** 4
-- **Phases complete:** 2 of 11
+- **Version:** 0.3.0
+- **Commits:** 5
+- **Files:** ~30
+- **Production code:** ~4,500 lines
+- **Test code:** ~2,400 lines
+- **Tests:** 89
+- **Suites:** 6
+- **Phases complete:** 4 of 11 (1, 2, 3, 6)

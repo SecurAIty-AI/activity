@@ -8,6 +8,7 @@ import { store } from '../services/database';
 import { sessionManager } from '../services/session-manager';
 import { stateMachine } from '../services/state-machine';
 import { alertEngine } from '../services/alert-engine';
+import { resourceMonitor } from '../services/resource-monitor';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -180,6 +181,41 @@ router.get('/states/:agentId', (req, res) => {
 router.get('/states/:agentId/transitions', (req, res) => {
   const transitions = stateMachine.getTransitions(req.params.agentId);
   res.json({ transitions, total: transitions.length });
+});
+
+// ─── GET /api/resources ──────────────────────────────────────────
+// System resource summary
+
+router.get('/resources', (_req, res) => {
+  res.json(resourceMonitor.getSystemResources());
+});
+
+// ─── GET /api/resources/pricing ──────────────────────────────────
+
+router.get('/resources/pricing', (_req, res) => {
+  res.json({ pricing: resourceMonitor.getPricing() });
+});
+
+// ─── POST /api/resources/estimate ────────────────────────────────
+// Estimate cost for a model + tokens
+
+router.post('/resources/estimate', (req, res) => {
+  const { model, inputTokens, outputTokens } = req.body;
+  if (!model) return res.status(400).json({ error: 'model required' });
+  const estimate = resourceMonitor.estimateCost(
+    model,
+    Number(inputTokens || 0),
+    Number(outputTokens || 0),
+  );
+  res.json(estimate);
+});
+
+// ─── GET /api/sessions/:id/snapshots ─────────────────────────────
+
+router.get('/sessions/:id/snapshots', (req, res) => {
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+  const snapshots = store.getSnapshots(req.params.id, limit);
+  res.json({ snapshots, total: snapshots.length });
 });
 
 // ─── GET /api/alert-rules ────────────────────────────────────────
