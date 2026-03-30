@@ -16,6 +16,8 @@ import { proxyRouter } from './routes/proxy';
 import apiRouter from './routes/api';
 import { eventBus } from './services/event-bus';
 import { activityMonitor } from './services/activity-monitor';
+import { store } from './services/database';
+import { sessionManager } from './services/session-manager';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3400');
@@ -134,6 +136,51 @@ function seedDemoData() {
       details: { model: 'claude-sonnet-4-20250514', latencyMs: 3200, completionTokens: 1500, responsePreview: '# TypeScript Best Practices in 2026\n\nTypeScript has evolved significantly...' },
     });
   }, 5000);
+}
+
+// ─── Start Server ────────────────────────────────────────────────
+
+// ─── Graceful Shutdown ───────────────────────────────────────────
+
+function shutdown(signal: string) {
+  console.log(`\n[${signal}] Shutting down gracefully...`);
+
+  // Close active sessions
+  const activeSessions = sessionManager.getActiveSessions();
+  for (const { sessionId } of activeSessions) {
+    sessionManager.endSession(sessionId, 'completed');
+  }
+
+  // Close all WebSocket connections
+  for (const ws of clients) {
+    ws.close(1001, 'Server shutting down');
+  }
+  clients.clear();
+
+  // Close server
+  server.close(() => {
+    // Close database
+    store.close();
+    console.log('[Shutdown] Clean exit.');
+    process.exit(0);
+  });
+
+  // Force exit after 5s
+  setTimeout(() => {
+    console.error('[Shutdown] Forced exit after timeout');
+    process.exit(1);
+  }, 5000);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+// ─── Startup Cleanup ────────────────────────────────────────────
+
+// Auto-cleanup old data (30-day retention)
+const cleaned = store.cleanup(30);
+if (cleaned > 0) {
+  console.log(`[Startup] Cleaned up ${cleaned} sessions older than 30 days`);
 }
 
 // ─── Start Server ────────────────────────────────────────────────

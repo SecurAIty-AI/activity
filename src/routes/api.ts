@@ -4,6 +4,8 @@
 
 import { Router } from 'express';
 import { activityMonitor } from '../services/activity-monitor';
+import { store } from '../services/database';
+import { sessionManager } from '../services/session-manager';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -56,6 +58,103 @@ router.get('/agents/:id', (req, res) => {
 
 router.get('/stats', (_req, res) => {
   res.json(activityMonitor.getStats());
+});
+
+// ─── GET /api/sessions ───────────────────────────────────────────
+// List sessions with optional filters
+
+router.get('/sessions', (req, res) => {
+  const { status, search, limit, offset } = req.query;
+  const sessions = store.getSessions({
+    status: status as string,
+    search: search as string,
+    limit: limit ? parseInt(limit as string) : 50,
+    offset: offset ? parseInt(offset as string) : 0,
+  });
+  res.json({ sessions, total: sessions.length });
+});
+
+// ─── GET /api/sessions/active ────────────────────────────────────
+
+router.get('/sessions/active', (_req, res) => {
+  const active = sessionManager.getActiveSessions();
+  const sessions = active.map(a => store.getSession(a.sessionId)).filter(Boolean);
+  res.json({ sessions, total: sessions.length });
+});
+
+// ─── GET /api/sessions/:id ───────────────────────────────────────
+
+router.get('/sessions/:id', (req, res) => {
+  const session = store.getSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  res.json({ session });
+});
+
+// ─── GET /api/sessions/:id/timeline ──────────────────────────────
+
+router.get('/sessions/:id/timeline', (req, res) => {
+  const session = store.getSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const events = store.getTimeline(req.params.id);
+  res.json({ session, events, total: events.length });
+});
+
+// ─── GET /api/sessions/:id/export ────────────────────────────────
+
+router.get('/sessions/:id/export', (req, res) => {
+  const session = store.getSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const exported = store.exportSession(req.params.id);
+  res.json(exported);
+});
+
+// ─── GET /api/events ─────────────────────────────────────────────
+// Query persisted events from SQLite
+
+router.get('/events', (req, res) => {
+  const { session_id, agent_id, event_type, severity, since, limit } = req.query;
+  const events = store.getEvents({
+    session_id: session_id as string,
+    agent_id: agent_id as string,
+    event_type: event_type as string,
+    severity: severity as string,
+    since: since as string,
+    limit: limit ? parseInt(limit as string) : 100,
+  });
+  res.json({ events, total: events.length });
+});
+
+// ─── GET /api/alerts ─────────────────────────────────────────────
+
+router.get('/alerts', (req, res) => {
+  const { session_id, status, limit } = req.query;
+  const alerts = store.getAlerts({
+    session_id: session_id as string,
+    status: status as string,
+    limit: limit ? parseInt(limit as string) : 50,
+  });
+  res.json({ alerts, total: alerts.length });
+});
+
+// ─── POST /api/alerts/:id/acknowledge ────────────────────────────
+
+router.post('/alerts/:id/acknowledge', (req, res) => {
+  store.acknowledgeAlert(req.params.id);
+  res.json({ success: true });
+});
+
+// ─── POST /api/alerts/:id/resolve ────────────────────────────────
+
+router.post('/alerts/:id/resolve', (req, res) => {
+  store.resolveAlert(req.params.id);
+  res.json({ success: true });
+});
+
+// ─── GET /api/db-stats ───────────────────────────────────────────
+// Stats from SQLite (persisted across restarts)
+
+router.get('/db-stats', (_req, res) => {
+  res.json(store.getStats());
 });
 
 // ─── POST /api/setup/install ─────────────────────────────────────

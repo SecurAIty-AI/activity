@@ -16,6 +16,7 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { activityMonitor } from '../services/activity-monitor';
+import { sessionManager } from '../services/session-manager';
 
 export const proxyRouter = Router();
 
@@ -92,7 +93,7 @@ proxyRouter.post('/v1/chat/completions', async (req: Request, res: Response) => 
   const messages: Array<{ role: string; content: string }> = req.body.messages || [];
   const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
 
-  // Log the request
+  // Log the request (in-memory)
   activityMonitor.record({
     agentId: agent.id,
     agentName: agent.name,
@@ -108,6 +109,22 @@ proxyRouter.post('/v1/chat/completions', async (req: Request, res: Response) => 
     },
   });
 
+  // Persist to SQLite session
+  sessionManager.recordProxyEvent({
+    agentId: agent.id,
+    agentName: agent.name,
+    model,
+    eventType: 'llm.request.started',
+    summary: `Chat completion request to ${model}`,
+    metadata: {
+      model,
+      provider: 'openai',
+      messageCount: messages.length,
+      lastUserMessage: lastUserMsg?.content?.slice(0, 200) || '',
+      promptTokens: estimateTokens(messages),
+    },
+  });
+
   // Register/update agent
   activityMonitor.registerAgent(agent.id, agent.name, {
     model,
@@ -118,7 +135,7 @@ proxyRouter.post('/v1/chat/completions', async (req: Request, res: Response) => 
   // Forward to real API
   const { status, data, latencyMs } = await forwardRequest(req, `${REAL_OPENAI}/chat/completions`, 'openai');
 
-  // Log the response
+  // Log the response (in-memory)
   const responseText = data?.choices?.[0]?.message?.content || '';
   activityMonitor.record({
     agentId: agent.id,
@@ -130,6 +147,27 @@ proxyRouter.post('/v1/chat/completions', async (req: Request, res: Response) => 
       provider: 'openai',
       completionTokens: data?.usage?.completion_tokens || 0,
       promptTokens: data?.usage?.prompt_tokens || 0,
+      totalTokens: data?.usage?.total_tokens || 0,
+      latencyMs,
+      responsePreview: responseText.slice(0, 200),
+      finishReason: data?.choices?.[0]?.finish_reason,
+    },
+  });
+
+  // Persist response to SQLite session
+  sessionManager.recordProxyEvent({
+    agentId: agent.id,
+    agentName: agent.name,
+    model,
+    eventType: 'llm.request.completed',
+    summary: `Response from ${model} (${latencyMs}ms)`,
+    metadata: {
+      model,
+      provider: 'openai',
+      completionTokens: data?.usage?.completion_tokens || 0,
+      promptTokens: data?.usage?.prompt_tokens || 0,
+      inputTokens: data?.usage?.prompt_tokens || 0,
+      outputTokens: data?.usage?.completion_tokens || 0,
       totalTokens: data?.usage?.total_tokens || 0,
       latencyMs,
       responsePreview: responseText.slice(0, 200),
@@ -189,6 +227,21 @@ proxyRouter.post('/v1/messages', async (req: Request, res: Response) => {
     },
   });
 
+  // Persist to SQLite session
+  sessionManager.recordProxyEvent({
+    agentId: agent.id,
+    agentName: agent.name,
+    model,
+    eventType: 'llm.request.started',
+    summary: `Anthropic message request to ${model}`,
+    metadata: {
+      model,
+      provider: 'anthropic',
+      messageCount: messages.length,
+      lastUserMessage: typeof lastUserMsg?.content === 'string' ? lastUserMsg.content.slice(0, 200) : '',
+    },
+  });
+
   activityMonitor.registerAgent(agent.id, agent.name, {
     model,
     provider: 'anthropic',
@@ -210,6 +263,23 @@ proxyRouter.post('/v1/messages', async (req: Request, res: Response) => {
       responsePreview: respContent.slice(0, 200),
       inputTokens: data?.usage?.input_tokens,
       outputTokens: data?.usage?.output_tokens,
+    },
+  });
+
+  // Persist response to SQLite session
+  sessionManager.recordProxyEvent({
+    agentId: agent.id,
+    agentName: agent.name,
+    model,
+    eventType: 'llm.request.completed',
+    summary: `Response from ${model} (${latencyMs}ms)`,
+    metadata: {
+      model,
+      provider: 'anthropic',
+      latencyMs,
+      responsePreview: respContent.slice(0, 200),
+      inputTokens: data?.usage?.input_tokens || 0,
+      outputTokens: data?.usage?.output_tokens || 0,
     },
   });
 
