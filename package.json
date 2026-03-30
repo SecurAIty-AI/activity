@@ -2,7 +2,7 @@
   "name": "activity-by-securaity",
   "version": "0.1.0",
   "description": "See what your AI agents are doing — in plain English",
-  "private": true,
+
   "scripts": {
     "dev": "npx tsx src/index.ts",
     "build": "npx esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/server.js",
