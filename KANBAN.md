@@ -104,14 +104,14 @@
 
 ---
 
-## ⬜ PHASE 8 — Resource Monitoring
+## ✅ PHASE 8 — Resource Monitoring
 > CPU, memory, tokens, cost — track resource consumption per agent.
 
-- ⬜ 🟠 Resource snapshot collector (every 10s per active session)
-- ⬜ 🟠 Token counting from proxy responses (prompt + completion)
-- ⬜ 🟠 Cost estimation by model (GPT-4o, Claude Sonnet, etc.)
-- ⬜ 🟡 Resource charts on session detail page
-- ⬜ 🟡 Budget alerts: notify when session cost exceeds threshold
+- ✅ 🟠 Resource snapshot collector (every 10s per active session)
+- ✅ 🟠 Token counting from proxy responses (prompt + completion)
+- ✅ 🟠 Cost estimation by model (18+ models with accurate pricing)
+- ⬜ 🟡 Resource charts on session detail page (Phase 4 dashboard)
+- ✅ 🟡 Budget alerts: notify when session cost exceeds threshold (via alert engine)
 - ⬜ 🟢 Historical cost dashboard (daily/weekly/monthly)
 
 ---
@@ -157,11 +157,11 @@
 ---
 
 ## 📊 Project Stats
-- **Version:** 0.3.0
-- **Commits:** 5
-- **Files:** ~30
-- **Production code:** ~4,500 lines
-- **Test code:** ~2,400 lines
-- **Tests:** 89
-- **Suites:** 6
-- **Phases complete:** 4 of 11 (1, 2, 3, 6)
+- **Version:** 0.4.0
+- **Commits:** 6
+- **Files:** ~32
+- **Production code:** ~5,000 lines
+- **Test code:** ~3,000 lines
+- **Tests:** 101
+- **Suites:** 7
+- **Phases complete:** 5 of 11 (1, 2, 3, 6, 8)
