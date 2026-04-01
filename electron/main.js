@@ -142,6 +142,7 @@ function createWindow() {
     height: 900,
     minWidth: 900,
     minHeight: 600,
+    show: false,
     title: 'Activity by SecurAIty',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 15, y: 15 },
@@ -150,6 +151,12 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     }
+  });
+
+  // Don't show until the page is fully loaded
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    mainWindow.focus();
   });
 
   mainWindow.loadURL(`http://localhost:${PORT}`);

@@ -116,6 +116,19 @@ eventBus.on('session:ended', (data) => {
   }
 });
 
+eventBus.on('demo:cleared', () => {
+  // Tell all dashboards to refresh — demo data has been purged
+  const msg = JSON.stringify({
+    type: 'demo:cleared',
+    agents: activityMonitor.getAgents(),
+    events: activityMonitor.getEvents({ limit: 50 }),
+    stats: activityMonitor.getStats(),
+  });
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
+});
+
 // ─── Demo Seed (generates sample activity to see the UI working) ─
 
 function seedDemoData() {

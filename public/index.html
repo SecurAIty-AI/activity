@@ -683,6 +683,21 @@
           }
           renderAgents();
         }
+
+        if (msg.type === 'demo:cleared') {
+          // Real agent connected — demo data purged. Refresh everything.
+          agents = {};
+          msg.agents.forEach(a => { agents[a.id] = a; });
+          events = msg.events || [];
+          hasRealAgents = true;
+          hideDemoBanner();
+          updateStats(msg.stats);
+          renderAgents();
+          renderEvents();
+          renderAgentFilters();
+          fetchAgentResources();
+          return;
+        }
       };
     }
 

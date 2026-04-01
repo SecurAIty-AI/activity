@@ -1,6 +1,6 @@
 {
   "name": "activity-by-securaity",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "See what your AI agents are doing — in plain English",
   "main": "electron/main.js",
   "scripts": {

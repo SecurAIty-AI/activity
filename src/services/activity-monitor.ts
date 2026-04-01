@@ -105,6 +105,14 @@ class ActivityMonitor {
   // ─── Agent Tracking ─────────────────────────────────────────
 
   private touchAgent(agentId: string, agentName: string, event: ActivityEvent, details: Record<string, unknown>) {
+    // If this is a real agent and demo data exists, clear it
+    if (!agentId.startsWith('demo-')) {
+      const hasDemoAgents = Array.from(this.agents.keys()).some(id => id.startsWith('demo-'));
+      if (hasDemoAgents) {
+        this.clearDemoData();
+      }
+    }
+
     let agent = this.agents.get(agentId);
     if (!agent) {
       agent = {
@@ -169,6 +177,26 @@ class ActivityMonitor {
 
     Object.assign(agent, meta, { id: agentId, name: agentName });
     agent.lastSeen = new Date().toISOString();
+  }
+
+  // ─── Clear Demo Data ─────────────────────────────────────────
+
+  clearDemoData() {
+    // Remove all demo events
+    this.events = this.events.filter(e => !e.agentId.startsWith('demo-'));
+
+    // Remove demo agents and their idle timers
+    for (const [id, _agent] of this.agents) {
+      if (id.startsWith('demo-')) {
+        const timer = this.idleTimers.get(id);
+        if (timer) clearTimeout(timer);
+        this.idleTimers.delete(id);
+        this.agents.delete(id);
+      }
+    }
+
+    // Notify dashboard
+    eventBus.emit('demo:cleared', {});
   }
 
   // ─── Queries ────────────────────────────────────────────────
