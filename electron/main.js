@@ -1,11 +1,73 @@
 const { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
 let backendProcess = null;
 let tray = null;
 const PORT = 3400;
+
+// ─── Auto-Updater Configuration ──────────────────────────────────
+
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Log updater events
+autoUpdater.on('checking-for-update', () => {
+  console.log('[Updater] Checking for update...');
+  sendToRenderer('update-status', { status: 'checking' });
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('[Updater] Update available:', info.version);
+  sendToRenderer('update-status', { status: 'available', version: info.version });
+});
+
+autoUpdater.on('update-not-available', () => {
+  console.log('[Updater] Already up to date.');
+  sendToRenderer('update-status', { status: 'up-to-date' });
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  console.log(`[Updater] Download: ${Math.round(progress.percent)}%`);
+  sendToRenderer('update-status', {
+    status: 'downloading',
+    percent: Math.round(progress.percent),
+  });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('[Updater] Update downloaded:', info.version);
+  sendToRenderer('update-status', { status: 'ready', version: info.version });
+
+  // Show dialog to user
+  if (mainWindow) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Ready',
+      message: `Version ${info.version} is ready to install.`,
+      detail: 'The app will restart to apply the update.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0,
+    }).then(({ response }) => {
+      if (response === 0) {
+        autoUpdater.quitAndInstall(false, true);
+      }
+    });
+  }
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('[Updater] Error:', err.message);
+  sendToRenderer('update-status', { status: 'error', message: err.message });
+});
+
+function sendToRenderer(channel, data) {
+  if (mainWindow && mainWindow.webContents) {
+    mainWindow.webContents.send(channel, data);
+  }
+}
 
 // ─── Backend Management ──────────────────────────────────────────
 
@@ -120,6 +182,8 @@ function createTray() {
     { type: 'separator' },
     { label: `Proxy: localhost:${PORT}`, enabled: false },
     { type: 'separator' },
+    { label: 'Check for Updates', click: () => autoUpdater.checkForUpdates() },
+    { type: 'separator' },
     { label: 'Quit', click: () => app.quit() }
   ]);
 
@@ -139,6 +203,7 @@ function createMenu() {
       label: 'Activity by SecurAIty',
       submenu: [
         { label: 'About Activity', role: 'about' },
+        { label: 'Check for Updates...', click: () => autoUpdater.checkForUpdates() },
         { type: 'separator' },
         { label: 'Quit', accelerator: 'CmdOrCtrl+Q', click: () => app.quit() }
       ]
@@ -175,6 +240,16 @@ app.whenReady().then(async () => {
 
   createWindow();
   createTray();
+
+  // Check for updates 10 seconds after launch
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 10000);
+
+  // Then check every 4 hours
+  setInterval(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 4 * 60 * 60 * 1000);
 });
 
 app.on('window-all-closed', () => {
@@ -197,11 +272,21 @@ app.on('before-quit', () => {
 ipcMain.handle('get-port', () => PORT);
 ipcMain.handle('get-version', () => app.getVersion());
 ipcMain.handle('check-for-updates', async () => {
-  // Auto-updater will be wired once GitHub releases are set up
-  // For now, return "up to date"
-  return {
-    updateAvailable: false,
-    currentVersion: app.getVersion(),
-    message: 'You are running the latest version.',
-  };
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    if (result && result.updateInfo) {
+      return {
+        updateAvailable: true,
+        version: result.updateInfo.version,
+        releaseDate: result.updateInfo.releaseDate,
+      };
+    }
+    return { updateAvailable: false, currentVersion: app.getVersion() };
+  } catch (err) {
+    return { updateAvailable: false, currentVersion: app.getVersion(), error: err.message };
+  }
+});
+
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall(false, true);
 });
