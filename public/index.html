@@ -402,9 +402,16 @@
     <main class="main">
       <!-- Demo data banner — shown only when no real agents connected -->
       <div id="demoBanner" class="demo-banner" style="display: none;">
-        <span class="demo-banner-text">
-          📋 Showing sample data — connect your AI agents to see real activity.
-        </span>
+        <div style="flex: 1;">
+          <span class="demo-banner-text">
+            📋 Showing sample data — connect your AI agents to see real activity.
+          </span>
+          <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button class="setup-btn" onclick="runSetup()" style="margin: 0; padding: 6px 16px; font-size: 12px;">⚡ Auto-Connect My Agents</button>
+            <span style="font-size: 11px; color: var(--text3);">or manually: <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: var(--cyan);">export OPENAI_BASE_URL=http://localhost:3400/proxy/v1</code></span>
+          </div>
+          <p id="setupResult2" style="margin-top: 6px; font-size: 12px;"></p>
+        </div>
         <button class="demo-banner-close" onclick="dismissDemoBanner()" title="Dismiss">✕</button>
       </div>
 
@@ -684,9 +691,12 @@
       const agentArr = Object.values(agents);
       hasRealAgents = agentArr.some(a => !a.id.startsWith('demo-'));
 
-      if (agentArr.length > 0 && !hasRealAgents && !demoBannerDismissed) {
+      if (!hasRealAgents && !demoBannerDismissed) {
+        // Show demo banner with connect button whenever no real agents are connected
         document.getElementById('demoBanner').style.display = 'flex';
-      } else {
+        // Hide the big setup banner since demo banner has the connect button
+        document.getElementById('setupBanner').style.display = 'none';
+      } else if (hasRealAgents) {
         hideDemoBanner();
       }
     }
@@ -926,6 +936,7 @@
       }
     }
 
+    // Hide the big setup banner — the demo banner handles connect now
     fetch('/api/setup/status').then(r => r.json()).then(data => {
       if (data.configured) {
         document.getElementById('setupBanner').style.display = 'none';
