@@ -196,3 +196,12 @@ app.on('before-quit', () => {
 
 ipcMain.handle('get-port', () => PORT);
 ipcMain.handle('get-version', () => app.getVersion());
+ipcMain.handle('check-for-updates', async () => {
+  // Auto-updater will be wired once GitHub releases are set up
+  // For now, return "up to date"
+  return {
+    updateAvailable: false,
+    currentVersion: app.getVersion(),
+    message: 'You are running the latest version.',
+  };
+});

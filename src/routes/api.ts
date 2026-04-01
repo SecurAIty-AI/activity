@@ -332,4 +332,142 @@ router.get('/setup/status', (_req, res) => {
   });
 });
 
+// ─── GET /api/settings ───────────────────────────────────────────
+// Get current user settings
+
+router.get('/settings', (_req, res) => {
+  const settingsPath = path.join(os.homedir(), '.activity-securaity', 'settings.json');
+  const defaults = {
+    theme: 'dark',
+    autoUpdate: true,
+    alertThresholds: {
+      costPerSession: 5.00,
+      idleTimeout: 300,
+      excessiveWrites: 50,
+    },
+    notifications: {
+      alerts: true,
+      agentConnect: true,
+      agentDisconnect: true,
+      sound: false,
+    },
+    agentAliases: {} as Record<string, string>,  // agentId → custom name
+  };
+
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const saved = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      res.json({ ...defaults, ...saved });
+    } else {
+      res.json(defaults);
+    }
+  } catch {
+    res.json(defaults);
+  }
+});
+
+// ─── PUT /api/settings ───────────────────────────────────────────
+// Save user settings
+
+router.put('/settings', (req, res) => {
+  const settingsDir = path.join(os.homedir(), '.activity-securaity');
+  const settingsPath = path.join(settingsDir, 'settings.json');
+
+  try {
+    if (!fs.existsSync(settingsDir)) {
+      fs.mkdirSync(settingsDir, { recursive: true });
+    }
+
+    // Merge with existing
+    let current = {};
+    if (fs.existsSync(settingsPath)) {
+      current = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    }
+
+    const merged = { ...current, ...req.body };
+    fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2));
+    res.json({ success: true, settings: merged });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── GET /api/agents/:id/resources ───────────────────────────────
+// Get per-agent resource usage (RAM, CPU, etc.)
+
+router.get('/agents/:id/resources', (req, res) => {
+  const agent = activityMonitor.getAgent(req.params.id);
+  if (!agent) return res.status(404).json({ error: 'Agent not found' });
+
+  const events = activityMonitor.getEvents({ agentId: req.params.id });
+  const totalTokens = events.reduce((sum, e) => {
+    return sum + (Number(e.details.completionTokens) || 0) + (Number(e.details.promptTokens) || 0);
+  }, 0);
+
+  // Estimate memory from token usage and activity (rough heuristic)
+  const activeMinutes = events.length > 0
+    ? (Date.now() - new Date(events[events.length - 1].timestamp).getTime()) / 60000
+    : 0;
+
+  const estimatedMemoryMb = Math.round(
+    (totalTokens * 0.004) + // ~4KB per token in memory
+    (events.length * 0.01) + // ~10KB per event overhead
+    50 // base overhead
+  );
+
+  res.json({
+    agentId: req.params.id,
+    agentName: agent.name,
+    status: agent.status,
+    estimatedMemoryMb,
+    totalTokens,
+    totalEvents: events.length,
+    activeMinutes: Math.round(activeMinutes * 10) / 10,
+    model: agent.model,
+    provider: agent.provider,
+    requestCount: agent.requestCount,
+  });
+});
+
+// ─── GET /api/agents/resources ───────────────────────────────────
+// Get resource usage for ALL agents
+
+router.get('/agents-resources', (_req, res) => {
+  const agents = activityMonitor.getAgents();
+  const resources = agents.map(agent => {
+    const events = activityMonitor.getEvents({ agentId: agent.id });
+    const totalTokens = events.reduce((sum, e) => {
+      return sum + (Number(e.details.completionTokens) || 0) + (Number(e.details.promptTokens) || 0);
+    }, 0);
+    const estimatedMemoryMb = Math.round(
+      (totalTokens * 0.004) + (events.length * 0.01) + 50
+    );
+    return {
+      agentId: agent.id,
+      agentName: agent.name,
+      status: agent.status,
+      estimatedMemoryMb,
+      totalTokens,
+      totalEvents: events.length,
+      model: agent.model,
+    };
+  });
+  res.json({ resources });
+});
+
+// ─── POST /api/check-update ─────────────────────────────────────
+// Check for updates (Electron IPC bridge)
+
+router.post('/check-update', (_req, res) => {
+  // This will be handled by Electron via IPC — the dashboard calls this,
+  // and the response tells it whether updates are available.
+  // In non-Electron mode, just say "manual updates required"
+  res.json({
+    updateAvailable: false,
+    currentVersion: '0.1.0',
+    message: 'You are running the latest version.',
+    method: process.env.ELECTRON_RUN_AS_NODE ? 'electron-updater' : 'manual',
+  });
+});
+
 export default router;

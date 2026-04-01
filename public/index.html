@@ -20,6 +20,10 @@
       --red: #ef4444;
       --purple: #a855f7;
       --cyan: #06b6d4;
+      --orange: #f97316;
+      --pink: #ec4899;
+      --lime: #84cc16;
+      --teal: #14b8a6;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Inter', system-ui, sans-serif;
@@ -60,6 +64,13 @@
       display: flex; align-items: center; gap: 4px;
     }
     .stat-chip strong { color: var(--text); font-weight: 700; }
+    .settings-btn {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text2); width: 36px; height: 36px; border-radius: 8px;
+      cursor: pointer; font-size: 18px; display: flex; align-items: center;
+      justify-content: center; transition: all 0.2s;
+    }
+    .settings-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
     /* ── Layout ─────────────────────────── */
     .layout {
@@ -109,6 +120,23 @@
       margin-top: 8px; display: flex; gap: 12px;
       font-size: 11px; color: var(--text3);
     }
+    .agent-ram {
+      margin-top: 6px;
+    }
+    .agent-ram-label {
+      font-size: 10px; color: var(--text3); display: flex;
+      justify-content: space-between; margin-bottom: 3px;
+    }
+    .agent-ram-bar {
+      height: 4px; border-radius: 2px; background: var(--bg);
+      overflow: hidden;
+    }
+    .agent-ram-fill {
+      height: 100%; border-radius: 2px; transition: width 0.5s ease;
+    }
+    .agent-ram-fill.low { background: var(--green); }
+    .agent-ram-fill.medium { background: var(--yellow); }
+    .agent-ram-fill.high { background: var(--red); }
     .no-agents {
       text-align: center; padding: 40px 16px; color: var(--text3);
     }
@@ -119,10 +147,10 @@
     .main { padding: 20px 24px; overflow-y: auto; }
     .feed-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
     }
     .feed-header h2 { font-size: 16px; font-weight: 700; }
-    .filter-bar { display: flex; gap: 6px; }
+    .filter-bar { display: flex; gap: 6px; flex-wrap: wrap; }
     .filter-btn {
       font-size: 11px; padding: 4px 12px; border-radius: 99px;
       border: 1px solid var(--border); background: transparent;
@@ -130,6 +158,15 @@
     }
     .filter-btn:hover { border-color: var(--text3); color: var(--text2); }
     .filter-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,0.1); }
+
+    /* ── Agent color tags ───────────────── */
+    .agent-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 99px; font-size: 10px;
+      font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .agent-tag:hover { opacity: 0.8; }
+    .agent-tag .dot { width: 6px; height: 6px; border-radius: 50%; }
 
     /* ── Event Card ─────────────────────── */
     .event-card {
@@ -159,8 +196,8 @@
       margin-top: 4px;
       display: flex; align-items: center; gap: 10px;
       font-size: 11px; color: var(--text3);
+      flex-wrap: wrap;
     }
-    .event-agent { font-weight: 600; color: var(--text2); }
     .event-label {
       padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;
     }
@@ -171,6 +208,25 @@
     .event-label.purple { background: rgba(168,85,247,0.15); color: var(--purple); }
     .event-label.gray { background: rgba(100,116,139,0.15); color: var(--text3); }
     .event-time { white-space: nowrap; }
+
+    /* ── Demo Banner ────────────────────── */
+    .demo-banner {
+      margin-bottom: 16px; padding: 12px 16px;
+      background: rgba(234,179,8,0.1);
+      border: 1px solid rgba(234,179,8,0.3);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+    }
+    .demo-banner-text {
+      font-size: 13px; color: var(--yellow); font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .demo-banner-close {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; font-size: 16px; padding: 4px;
+    }
+    .demo-banner-close:hover { color: var(--text); }
 
     /* ── Setup Banner ───────────────────── */
     .setup-banner {
@@ -200,6 +256,116 @@
     .empty-state .big-icon { font-size: 64px; margin-bottom: 16px; }
     .empty-state h3 { font-size: 18px; color: var(--text2); margin-bottom: 8px; }
     .empty-state p { font-size: 14px; line-height: 1.6; max-width: 400px; margin: 0 auto; }
+
+    /* ── Settings Panel ─────────────────── */
+    .settings-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      z-index: 500;
+    }
+    .settings-overlay.open { display: flex; align-items: center; justify-content: center; }
+    .settings-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 560px; max-width: 90vw; max-height: 85vh;
+      overflow-y: auto; padding: 28px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+    }
+    .settings-panel h2 {
+      font-size: 20px; font-weight: 800; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .settings-panel h2 .close-btn {
+      margin-left: auto; background: transparent; border: none;
+      color: var(--text3); cursor: pointer; font-size: 20px;
+    }
+    .settings-panel h2 .close-btn:hover { color: var(--text); }
+    .settings-section {
+      margin-bottom: 24px;
+    }
+    .settings-section h3 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text3); margin-bottom: 12px; font-weight: 700;
+    }
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 13px; color: var(--text); }
+    .setting-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .toggle {
+      position: relative; width: 40px; height: 22px; cursor: pointer;
+    }
+    .toggle input { display: none; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: var(--bg3);
+      border-radius: 22px; transition: 0.3s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; width: 16px; height: 16px;
+      border-radius: 50%; background: var(--text3); left: 3px; top: 3px;
+      transition: 0.3s;
+    }
+    .toggle input:checked + .toggle-slider {
+      background: var(--cyan);
+    }
+    .toggle input:checked + .toggle-slider::before {
+      background: white; transform: translateX(18px);
+    }
+    .setting-input {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 10px; color: var(--text);
+      font-size: 13px; width: 100px; text-align: right;
+    }
+    .setting-input:focus { outline: none; border-color: var(--cyan); }
+    .settings-actions {
+      display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
+      padding-top: 16px; border-top: 1px solid var(--border);
+    }
+    .btn-primary {
+      padding: 8px 24px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: white; font-weight: 700; cursor: pointer; font-size: 13px;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      padding: 8px 24px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text2); font-weight: 600; cursor: pointer; font-size: 13px;
+    }
+    .btn-secondary:hover { border-color: var(--text3); color: var(--text); }
+    .btn-update {
+      padding: 8px 20px; border-radius: 8px; border: none;
+      background: var(--bg3); color: var(--text); font-weight: 600;
+      cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-update:hover { background: var(--border); }
+    .btn-update.checking { opacity: 0.6; cursor: wait; }
+    .update-result {
+      font-size: 12px; color: var(--text2); margin-top: 6px;
+    }
+
+    /* ── Agent Alias Edit ───────────────── */
+    .alias-list { margin-top: 8px; }
+    .alias-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .alias-original {
+      font-size: 12px; color: var(--text3); width: 120px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .alias-arrow { color: var(--text3); font-size: 12px; }
+    .alias-input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 8px; color: var(--text);
+      font-size: 12px;
+    }
+    .alias-input:focus { outline: none; border-color: var(--cyan); }
+    .alias-input::placeholder { color: var(--text3); }
   </style>
 </head>
 <body>
@@ -208,13 +374,14 @@
   <header class="header">
     <div class="header-left">
       <h1>📊 Activity <span>by SecurAIty</span></h1>
-      <span class="tag">v0.1.0</span>
+      <span class="tag" id="versionTag">v0.1.0</span>
       <div class="connection-dot" id="connectionDot"></div>
     </div>
     <div class="header-right">
       <div class="stat-chip">Agents: <strong id="statAgents">0</strong></div>
       <div class="stat-chip">Events: <strong id="statEvents">0</strong></div>
       <div class="stat-chip">Last hour: <strong id="statHour">0</strong></div>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </header>
 
@@ -233,6 +400,14 @@
 
     <!-- Main: Activity Feed -->
     <main class="main">
+      <!-- Demo data banner — shown only when no real agents connected -->
+      <div id="demoBanner" class="demo-banner" style="display: none;">
+        <span class="demo-banner-text">
+          📋 Showing sample data — connect your AI agents to see real activity.
+        </span>
+        <button class="demo-banner-close" onclick="dismissDemoBanner()" title="Dismiss">✕</button>
+      </div>
+
       <div id="setupBanner" class="setup-banner">
         <h3>🔗 Quick Setup — See Your AI Activity</h3>
         <p>Click the button to auto-configure your machine. Every AI tool (Cursor, Claude Desktop, Python scripts) will route through Activity Monitor automatically.</p>
@@ -243,7 +418,7 @@
 
       <div class="feed-header">
         <h2>Live Activity Feed</h2>
-        <div class="filter-bar">
+        <div class="filter-bar" id="filterBar">
           <button class="filter-btn active" data-filter="all">All</button>
           <button class="filter-btn" data-filter="llm">💬 LLM</button>
           <button class="filter-btn" data-filter="file">📄 Files</button>
@@ -251,6 +426,14 @@
           <button class="filter-btn" data-filter="network">🌐 Network</button>
           <button class="filter-btn" data-filter="tool">🔧 Tools</button>
           <button class="filter-btn" data-filter="thought">🧠 Thinking</button>
+        </div>
+      </div>
+
+      <!-- Agent filter pills (dynamic, inserted by JS) -->
+      <div id="agentFilterBar" style="display: none; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span style="font-size: 11px; color: var(--text3); margin-right: 4px;">By agent:</span>
+          <div id="agentFilters"></div>
         </div>
       </div>
 
@@ -264,6 +447,117 @@
     </main>
   </div>
 
+  <!-- Settings Panel Overlay -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <h2>
+        ⚙️ Settings
+        <button class="close-btn" onclick="closeSettings()">✕</button>
+      </h2>
+
+      <!-- Notifications -->
+      <div class="settings-section">
+        <h3>Notifications</h3>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Alert notifications</div>
+            <div class="setting-desc">Show notifications for security alerts</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="settingAlertNotifs" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Agent connect/disconnect</div>
+            <div class="setting-desc">Notify when agents join or leave</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="settingAgentNotifs" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Sound effects</div>
+            <div class="setting-desc">Play sounds for important events</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="settingSound">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Alert Thresholds -->
+      <div class="settings-section">
+        <h3>Alert Thresholds</h3>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Max cost per session</div>
+            <div class="setting-desc">Alert when a session exceeds this cost ($)</div>
+          </div>
+          <input type="number" class="setting-input" id="settingCostThreshold" value="5.00" step="0.50" min="0">
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Idle timeout (seconds)</div>
+            <div class="setting-desc">Alert when agent is idle for this long</div>
+          </div>
+          <input type="number" class="setting-input" id="settingIdleTimeout" value="300" step="30" min="30">
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Excessive writes threshold</div>
+            <div class="setting-desc">Alert after this many file writes</div>
+          </div>
+          <input type="number" class="setting-input" id="settingWriteThreshold" value="50" step="5" min="5">
+        </div>
+      </div>
+
+      <!-- Agent Aliases -->
+      <div class="settings-section">
+        <h3>Agent Names</h3>
+        <p style="font-size: 12px; color: var(--text3); margin-bottom: 8px;">
+          Rename agents to something you recognize. Leave blank to use the auto-detected name.
+        </p>
+        <div id="agentAliases" class="alias-list">
+          <div style="font-size: 12px; color: var(--text3); padding: 12px 0;">
+            No agents connected yet — aliases will appear here.
+          </div>
+        </div>
+      </div>
+
+      <!-- Updates -->
+      <div class="settings-section">
+        <h3>Updates</h3>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Auto-update</div>
+            <div class="setting-desc">Automatically download and install updates</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="settingAutoUpdate" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="margin-top: 12px;">
+          <button class="btn-update" id="checkUpdateBtn" onclick="checkForUpdates()">
+            🔄 Check for Updates
+          </button>
+          <div class="update-result" id="updateResult"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="settings-actions">
+        <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ── State ─────────────────────────────
     let agents = {};
@@ -271,7 +565,40 @@
     let activeFilter = 'all';
     let selectedAgent = null;
     let ws = null;
+    let settings = {};
+    let agentResources = {};
+    let hasRealAgents = false;
+    let demoBannerDismissed = false;
     const MAX_EVENTS = 200;
+
+    // Agent colors — assign deterministically
+    const AGENT_COLORS = [
+      { bg: 'rgba(6,182,212,0.15)', text: '#06b6d4', dot: '#06b6d4' },   // cyan
+      { bg: 'rgba(168,85,247,0.15)', text: '#a855f7', dot: '#a855f7' },   // purple
+      { bg: 'rgba(249,115,22,0.15)', text: '#f97316', dot: '#f97316' },   // orange
+      { bg: 'rgba(236,72,153,0.15)', text: '#ec4899', dot: '#ec4899' },   // pink
+      { bg: 'rgba(132,204,22,0.15)', text: '#84cc16', dot: '#84cc16' },   // lime
+      { bg: 'rgba(59,130,246,0.15)', text: '#3b82f6', dot: '#3b82f6' },   // blue
+      { bg: 'rgba(20,184,166,0.15)', text: '#14b8a6', dot: '#14b8a6' },   // teal
+      { bg: 'rgba(234,179,8,0.15)', text: '#eab308', dot: '#eab308' },    // yellow
+    ];
+    const agentColorMap = {};
+    let colorIndex = 0;
+
+    function getAgentColor(agentId) {
+      if (!agentColorMap[agentId]) {
+        agentColorMap[agentId] = AGENT_COLORS[colorIndex % AGENT_COLORS.length];
+        colorIndex++;
+      }
+      return agentColorMap[agentId];
+    }
+
+    function getAgentDisplayName(agentId, fallback) {
+      if (settings.agentAliases && settings.agentAliases[agentId]) {
+        return settings.agentAliases[agentId];
+      }
+      return fallback;
+    }
 
     // ── WebSocket ─────────────────────────
     function connect() {
@@ -293,12 +620,14 @@
         const msg = JSON.parse(e.data);
 
         if (msg.type === 'init') {
-          // Initial state
           msg.agents.forEach(a => { agents[a.id] = a; });
           events = msg.recentEvents || [];
           updateStats(msg.stats);
+          checkForDemoData();
           renderAgents();
           renderEvents();
+          renderAgentFilters();
+          fetchAgentResources();
           return;
         }
 
@@ -306,7 +635,6 @@
           events.unshift(msg.event);
           if (events.length > MAX_EVENTS) events = events.slice(0, MAX_EVENTS);
 
-          // Update agent
           const agentId = msg.event.agentId;
           if (agents[agentId]) {
             agents[agentId].lastSeen = msg.event.timestamp;
@@ -315,16 +643,29 @@
             agents[agentId].requestCount = (agents[agentId].requestCount || 0) + 1;
           }
 
+          // Check if this is a real (non-demo) agent
+          if (!agentId.startsWith('demo-')) {
+            hasRealAgents = true;
+            hideDemoBanner();
+          }
+
           renderAgents();
           addEventToFeed(msg.event, true);
           updateStatsFromEvents();
+          renderAgentFilters();
           return;
         }
 
         if (msg.type === 'agent:new') {
           agents[msg.agent.id] = msg.agent;
+          if (!msg.agent.id.startsWith('demo-')) {
+            hasRealAgents = true;
+            hideDemoBanner();
+          }
           renderAgents();
+          renderAgentFilters();
           updateStatsFromEvents();
+          fetchAgentResources();
           return;
         }
 
@@ -338,6 +679,44 @@
       };
     }
 
+    // ── Demo Data Detection ───────────────
+    function checkForDemoData() {
+      const agentArr = Object.values(agents);
+      hasRealAgents = agentArr.some(a => !a.id.startsWith('demo-'));
+
+      if (agentArr.length > 0 && !hasRealAgents && !demoBannerDismissed) {
+        document.getElementById('demoBanner').style.display = 'flex';
+      } else {
+        hideDemoBanner();
+      }
+    }
+
+    function hideDemoBanner() {
+      document.getElementById('demoBanner').style.display = 'none';
+    }
+
+    function dismissDemoBanner() {
+      demoBannerDismissed = true;
+      hideDemoBanner();
+    }
+
+    // ── Fetch Agent Resources ─────────────
+    function fetchAgentResources() {
+      fetch('/api/agents-resources')
+        .then(r => r.json())
+        .then(data => {
+          agentResources = {};
+          (data.resources || []).forEach(r => {
+            agentResources[r.agentId] = r;
+          });
+          renderAgents();
+        })
+        .catch(() => {});
+    }
+
+    // Refresh resources every 10s
+    setInterval(fetchAgentResources, 10000);
+
     // ── Render Agents ─────────────────────
     function renderAgents() {
       const list = document.getElementById('agentList');
@@ -348,32 +727,91 @@
         return;
       }
 
-      // Sort: active first, then by lastSeen
       agentArr.sort((a, b) => {
         if (a.status === 'active' && b.status !== 'active') return -1;
         if (b.status === 'active' && a.status !== 'active') return 1;
         return new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime();
       });
 
-      list.innerHTML = agentArr.map(a => `
-        <div class="agent-card ${selectedAgent === a.id ? 'active' : ''}" onclick="selectAgent('${a.id}')">
-          <div class="agent-header">
-            <span class="agent-name">${escapeHtml(a.name)}</span>
-            <span class="agent-status ${a.status}">${a.status}</span>
+      list.innerHTML = agentArr.map(a => {
+        const displayName = getAgentDisplayName(a.id, a.name);
+        const color = getAgentColor(a.id);
+        const res = agentResources[a.id];
+        const memMb = res ? res.estimatedMemoryMb : 0;
+        const maxMem = 2048; // 2GB reference scale
+        const memPct = Math.min(Math.round((memMb / maxMem) * 100), 100);
+        const memClass = memPct < 30 ? 'low' : memPct < 70 ? 'medium' : 'high';
+
+        return `
+          <div class="agent-card ${selectedAgent === a.id ? 'active' : ''}" onclick="selectAgent('${a.id}')">
+            <div class="agent-header">
+              <span class="agent-name" style="color: ${color.text}">${escapeHtml(displayName)}</span>
+              <span class="agent-status ${a.status}">${a.status}</span>
+            </div>
+            <div class="agent-activity">${escapeHtml(a.currentActivity || 'No activity yet')}</div>
+            <div class="agent-meta">
+              ${a.model ? `<span>🤖 ${escapeHtml(a.model)}</span>` : ''}
+              <span>📊 ${a.requestCount || 0} events</span>
+            </div>
+            <div class="agent-ram">
+              <div class="agent-ram-label">
+                <span>RAM</span>
+                <span>${memMb} MB</span>
+              </div>
+              <div class="agent-ram-bar">
+                <div class="agent-ram-fill ${memClass}" style="width: ${memPct}%"></div>
+              </div>
+            </div>
           </div>
-          <div class="agent-activity">${escapeHtml(a.currentActivity || 'No activity yet')}</div>
-          <div class="agent-meta">
-            ${a.model ? `<span>🤖 ${escapeHtml(a.model)}</span>` : ''}
-            <span>📊 ${a.requestCount || 0} events</span>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function selectAgent(id) {
       selectedAgent = selectedAgent === id ? null : id;
       renderAgents();
       renderEvents();
+      renderAgentFilters();
+    }
+
+    // ── Render Agent Filter Pills ─────────
+    function renderAgentFilters() {
+      const bar = document.getElementById('agentFilterBar');
+      const container = document.getElementById('agentFilters');
+      const agentArr = Object.values(agents);
+
+      if (agentArr.length <= 1) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = 'block';
+
+      const pills = [`
+        <span class="agent-tag" onclick="selectAgent(null)"
+          style="background: ${!selectedAgent ? 'rgba(255,255,255,0.1)' : 'transparent'};
+                 color: ${!selectedAgent ? 'var(--text)' : 'var(--text3)'};
+                 border: 1px solid ${!selectedAgent ? 'var(--text3)' : 'var(--border)'};">
+          All
+        </span>
+      `];
+
+      agentArr.forEach(a => {
+        const color = getAgentColor(a.id);
+        const displayName = getAgentDisplayName(a.id, a.name);
+        const isActive = selectedAgent === a.id;
+        pills.push(`
+          <span class="agent-tag" onclick="selectAgent('${a.id}')"
+            style="background: ${isActive ? color.bg : 'transparent'};
+                   color: ${isActive ? color.text : 'var(--text3)'};
+                   border: 1px solid ${isActive ? color.text : 'var(--border)'};">
+            <span class="dot" style="background: ${color.dot}"></span>
+            ${escapeHtml(displayName)}
+          </span>
+        `);
+      });
+
+      container.innerHTML = pills.join('');
     }
 
     // ── Render Events ─────────────────────
@@ -397,7 +835,6 @@
     }
 
     function addEventToFeed(event, isNew) {
-      // Check filter
       if (selectedAgent && event.agentId !== selectedAgent) return;
       if (activeFilter !== 'all' && event.category !== activeFilter) return;
 
@@ -415,7 +852,6 @@
         feed.appendChild(card);
       }
 
-      // Trim old cards
       while (feed.children.length > 100) {
         feed.removeChild(feed.lastChild);
       }
@@ -423,6 +859,9 @@
 
     function eventCardHTML(e, isNew = false) {
       const time = new Date(e.timestamp).toLocaleTimeString();
+      const color = getAgentColor(e.agentId);
+      const displayName = getAgentDisplayName(e.agentId, e.agentName);
+
       return `
         <div class="event-card ${isNew ? 'new' : ''}">
           <div class="event-top">
@@ -430,7 +869,11 @@
             <div class="event-body">
               <div class="event-plain">${escapeHtml(e.plain)}</div>
               <div class="event-meta">
-                <span class="event-agent">${escapeHtml(e.agentName)}</span>
+                <span class="agent-tag" onclick="event.stopPropagation(); selectAgent('${e.agentId}')"
+                  style="background: ${color.bg}; color: ${color.text};">
+                  <span class="dot" style="background: ${color.dot}"></span>
+                  ${escapeHtml(displayName)}
+                </span>
                 <span class="event-label ${e.color || 'gray'}">${escapeHtml(e.label)}</span>
                 <span class="event-time">${time}</span>
               </div>
@@ -483,12 +926,160 @@
       }
     }
 
-    // Check if already configured
     fetch('/api/setup/status').then(r => r.json()).then(data => {
       if (data.configured) {
         document.getElementById('setupBanner').style.display = 'none';
       }
     }).catch(() => {});
+
+    // ── Settings ──────────────────────────
+    async function loadSettings() {
+      try {
+        const r = await fetch('/api/settings');
+        settings = await r.json();
+        applySettingsToUI();
+      } catch {
+        settings = {};
+      }
+    }
+
+    function applySettingsToUI() {
+      document.getElementById('settingAlertNotifs').checked = settings.notifications?.alerts ?? true;
+      document.getElementById('settingAgentNotifs').checked = settings.notifications?.agentConnect ?? true;
+      document.getElementById('settingSound').checked = settings.notifications?.sound ?? false;
+      document.getElementById('settingCostThreshold').value = settings.alertThresholds?.costPerSession ?? 5;
+      document.getElementById('settingIdleTimeout').value = settings.alertThresholds?.idleTimeout ?? 300;
+      document.getElementById('settingWriteThreshold').value = settings.alertThresholds?.excessiveWrites ?? 50;
+      document.getElementById('settingAutoUpdate').checked = settings.autoUpdate ?? true;
+
+      // Render agent aliases
+      renderAgentAliases();
+    }
+
+    function renderAgentAliases() {
+      const container = document.getElementById('agentAliases');
+      const agentArr = Object.values(agents);
+
+      if (agentArr.length === 0) {
+        container.innerHTML = '<div style="font-size: 12px; color: var(--text3); padding: 12px 0;">No agents connected yet.</div>';
+        return;
+      }
+
+      container.innerHTML = agentArr.map(a => {
+        const alias = settings.agentAliases?.[a.id] || '';
+        return `
+          <div class="alias-row">
+            <span class="alias-original">${escapeHtml(a.name)}</span>
+            <span class="alias-arrow">→</span>
+            <input class="alias-input" data-agent-id="${a.id}"
+              value="${escapeHtml(alias)}" placeholder="Custom name...">
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openSettings() {
+      loadSettings().then(() => {
+        document.getElementById('settingsOverlay').classList.add('open');
+      });
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsOverlay').classList.remove('open');
+    }
+
+    async function saveSettings() {
+      // Gather aliases
+      const aliases = {};
+      document.querySelectorAll('.alias-input').forEach(input => {
+        const val = input.value.trim();
+        if (val) aliases[input.dataset.agentId] = val;
+      });
+
+      const payload = {
+        notifications: {
+          alerts: document.getElementById('settingAlertNotifs').checked,
+          agentConnect: document.getElementById('settingAgentNotifs').checked,
+          sound: document.getElementById('settingSound').checked,
+        },
+        alertThresholds: {
+          costPerSession: parseFloat(document.getElementById('settingCostThreshold').value) || 5,
+          idleTimeout: parseInt(document.getElementById('settingIdleTimeout').value) || 300,
+          excessiveWrites: parseInt(document.getElementById('settingWriteThreshold').value) || 50,
+        },
+        autoUpdate: document.getElementById('settingAutoUpdate').checked,
+        agentAliases: aliases,
+      };
+
+      try {
+        const r = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await r.json();
+        if (data.success) {
+          settings = data.settings;
+          closeSettings();
+          // Re-render with new aliases
+          renderAgents();
+          renderEvents();
+          renderAgentFilters();
+        }
+      } catch (err) {
+        console.error('Failed to save settings:', err);
+      }
+    }
+
+    async function checkForUpdates() {
+      const btn = document.getElementById('checkUpdateBtn');
+      const result = document.getElementById('updateResult');
+      btn.classList.add('checking');
+      btn.innerHTML = '⏳ Checking...';
+      result.textContent = '';
+
+      try {
+        // Try Electron IPC first
+        if (window.electronAPI && window.electronAPI.checkForUpdates) {
+          const updateInfo = await window.electronAPI.checkForUpdates();
+          if (updateInfo && updateInfo.updateAvailable) {
+            result.innerHTML = `✅ Update available: <strong>v${updateInfo.version}</strong>. It will download automatically.`;
+          } else {
+            result.textContent = '✅ You are running the latest version.';
+          }
+        } else {
+          // Fallback to API
+          const r = await fetch('/api/check-update', { method: 'POST' });
+          const data = await r.json();
+          result.textContent = data.message || '✅ Up to date.';
+        }
+      } catch (err) {
+        result.textContent = '⚠️ Could not check for updates. Try again later.';
+      }
+
+      btn.classList.remove('checking');
+      btn.innerHTML = '🔄 Check for Updates';
+    }
+
+    // Close settings on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSettings();
+    });
+
+    // Close settings on overlay click
+    document.getElementById('settingsOverlay').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+    });
+
+    // ── Version Tag ───────────────────────
+    async function loadVersion() {
+      try {
+        if (window.electronAPI && window.electronAPI.getVersion) {
+          const v = await window.electronAPI.getVersion();
+          document.getElementById('versionTag').textContent = `v${v}`;
+        }
+      } catch {}
+    }
 
     // ── Helpers ───────────────────────────
     function escapeHtml(text) {
@@ -497,7 +1088,9 @@
       return d.innerHTML;
     }
 
-    // ── Connect! ──────────────────────────
+    // ── Init ──────────────────────────────
+    loadSettings();
+    loadVersion();
     connect();
   </script>
 </body>
