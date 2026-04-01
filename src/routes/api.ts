@@ -267,14 +267,33 @@ export ACTIVITY_MONITOR="true"
       try {
         // Save the user's real OPENAI_BASE_URL before overriding
         const currentUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
-        execSync(`launchctl setenv REAL_OPENAI_URL "${currentUrl}" 2>/dev/null || true`);
-        execSync(`launchctl setenv OPENAI_BASE_URL "${proxyUrl}"`);
-        execSync(`launchctl setenv ACTIVITY_MONITOR "true"`);
+        try { execSync(`launchctl setenv REAL_OPENAI_URL "${currentUrl}" 2>/dev/null`); } catch {}
+        try { execSync(`launchctl setenv OPENAI_BASE_URL "${proxyUrl}" 2>/dev/null`); } catch {}
+        try { execSync(`launchctl setenv ACTIVITY_MONITOR "true" 2>/dev/null`); } catch {}
         results.push('✅ System env vars set (GUI apps connected NOW)');
       } catch {
-        results.push('⚠️ Could not set launchctl env vars');
+        results.push('⚠️ Could not set launchctl env vars — set manually in Terminal');
       }
     }
+
+    // Also write to .bashrc and .bash_profile for broader shell support
+    const bashrc = path.join(homeDir, '.bashrc');
+    try {
+      const bashContent = fs.existsSync(bashrc) ? fs.readFileSync(bashrc, 'utf8') : '';
+      if (!bashContent.includes('ACTIVITY_MONITOR')) {
+        fs.appendFileSync(bashrc, envBlock);
+        results.push('✅ Added to ~/.bashrc');
+      }
+    } catch {}
+
+    const bashProfile = path.join(homeDir, '.bash_profile');
+    try {
+      const bpContent = fs.existsSync(bashProfile) ? fs.readFileSync(bashProfile, 'utf8') : '';
+      if (!bpContent.includes('ACTIVITY_MONITOR')) {
+        fs.appendFileSync(bashProfile, envBlock);
+        results.push('✅ Added to ~/.bash_profile');
+      }
+    } catch {}
 
     res.json({ success: true, results, proxyUrl });
   } catch (err: any) {

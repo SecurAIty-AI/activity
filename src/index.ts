@@ -119,22 +119,22 @@ eventBus.on('session:ended', (data) => {
 // ─── Demo Seed (generates sample activity to see the UI working) ─
 
 function seedDemoData() {
-  const demoAgent = { agentId: 'demo-cursor-01', agentName: 'Cursor' };
+  const demoAgent = { agentId: 'demo-cursor-01', agentName: 'Test Item — Cursor' };
 
   const demoEvents = [
-    { type: 'llm:request' as const, summary: 'Asking Claude about React hooks', details: { model: 'claude-sonnet-4-20250514', provider: 'anthropic', messageCount: 3, lastUserMessage: 'How do I use useEffect with async functions?' } },
-    { type: 'llm:response' as const, summary: 'Claude responded about React hooks', details: { model: 'claude-sonnet-4-20250514', latencyMs: 1200, completionTokens: 450, responsePreview: 'To use useEffect with async functions, create an async function inside the effect and call it...' } },
-    { type: 'file:read' as const, summary: 'Reading App.tsx', details: { path: '/Users/dev/myapp/src/App.tsx', filename: 'App.tsx' } },
-    { type: 'file:write' as const, summary: 'Editing App.tsx', details: { path: '/Users/dev/myapp/src/App.tsx', filename: 'App.tsx', size: 2048 } },
-    { type: 'process:exec' as const, summary: 'Running npm install', details: { command: 'npm install react-query' } },
-    { type: 'tool:call' as const, summary: 'Using web search', details: { tool: 'web_search', args: 'React Query v5 migration guide' } },
-    { type: 'file:create' as const, summary: 'Created useData.ts', details: { path: '/Users/dev/myapp/src/hooks/useData.ts', filename: 'useData.ts' } },
-    { type: 'thought:reasoning' as const, summary: 'Thinking about architecture', details: { content: 'The user wants a custom hook for data fetching. I should use React Query for caching and automatic refetching...' } },
-    { type: 'network:outbound' as const, summary: 'Fetching npm package info', details: { domain: 'registry.npmjs.org', url: 'https://registry.npmjs.org/react-query' } },
-    { type: 'process:exec' as const, summary: 'Running tests', details: { command: 'npx vitest run src/hooks/useData.test.ts' } },
-    { type: 'file:write' as const, summary: 'Updating package.json', details: { path: '/Users/dev/myapp/package.json', filename: 'package.json', size: 512 } },
-    { type: 'llm:request' as const, summary: 'Asking about error handling', details: { model: 'gpt-4o', provider: 'openai', messageCount: 5, lastUserMessage: 'Add proper error boundaries to the component' } },
-    { type: 'llm:response' as const, summary: 'GPT-4o responded about error handling', details: { model: 'gpt-4o', latencyMs: 800, completionTokens: 320, responsePreview: 'You should wrap your component with an ErrorBoundary class component that catches render errors...' } },
+    { type: 'llm:request' as const, summary: 'Test Item — Asking Claude about React hooks', details: { model: 'claude-sonnet-4-20250514', provider: 'anthropic', messageCount: 3, lastUserMessage: 'How do I use useEffect with async functions?' } },
+    { type: 'llm:response' as const, summary: 'Test Item — Claude responded about React hooks', details: { model: 'claude-sonnet-4-20250514', latencyMs: 1200, completionTokens: 450, responsePreview: 'To use useEffect with async functions, create an async function inside the effect and call it...' } },
+    { type: 'file:read' as const, summary: 'Test Item — Reading App.tsx', details: { path: '/Users/dev/myapp/src/App.tsx', filename: 'App.tsx' } },
+    { type: 'file:write' as const, summary: 'Test Item — Editing App.tsx', details: { path: '/Users/dev/myapp/src/App.tsx', filename: 'App.tsx', size: 2048 } },
+    { type: 'process:exec' as const, summary: 'Test Item — Running npm install', details: { command: 'npm install react-query' } },
+    { type: 'tool:call' as const, summary: 'Test Item — Using web search', details: { tool: 'web_search', args: 'React Query v5 migration guide' } },
+    { type: 'file:create' as const, summary: 'Test Item — Created useData.ts', details: { path: '/Users/dev/myapp/src/hooks/useData.ts', filename: 'useData.ts' } },
+    { type: 'thought:reasoning' as const, summary: 'Test Item — Thinking about architecture', details: { content: 'The user wants a custom hook for data fetching. I should use React Query for caching and automatic refetching...' } },
+    { type: 'network:outbound' as const, summary: 'Test Item — Fetching npm package info', details: { domain: 'registry.npmjs.org', url: 'https://registry.npmjs.org/react-query' } },
+    { type: 'process:exec' as const, summary: 'Test Item — Running tests', details: { command: 'npx vitest run src/hooks/useData.test.ts' } },
+    { type: 'file:write' as const, summary: 'Test Item — Updating package.json', details: { path: '/Users/dev/myapp/package.json', filename: 'package.json', size: 512 } },
+    { type: 'llm:request' as const, summary: 'Test Item — Asking about error handling', details: { model: 'gpt-4o', provider: 'openai', messageCount: 5, lastUserMessage: 'Add proper error boundaries to the component' } },
+    { type: 'llm:response' as const, summary: 'Test Item — GPT-4o responded about error handling', details: { model: 'gpt-4o', latencyMs: 800, completionTokens: 320, responsePreview: 'You should wrap your component with an ErrorBoundary class component that catches render errors...' } },
   ];
 
   // Stagger events over time to look realistic
@@ -148,9 +148,9 @@ function seedDemoData() {
   setTimeout(() => {
     activityMonitor.record({
       agentId: 'demo-claude-02',
-      agentName: 'Claude Desktop',
+      agentName: 'Test Item — Claude Desktop',
       type: 'llm:request',
-      summary: 'Writing a blog post',
+      summary: 'Test Item — Writing a blog post',
       details: { model: 'claude-sonnet-4-20250514', provider: 'anthropic', messageCount: 1, lastUserMessage: 'Write a blog post about TypeScript best practices' },
     });
   }, 3000);
@@ -158,9 +158,9 @@ function seedDemoData() {
   setTimeout(() => {
     activityMonitor.record({
       agentId: 'demo-claude-02',
-      agentName: 'Claude Desktop',
+      agentName: 'Test Item — Claude Desktop',
       type: 'llm:response',
-      summary: 'Blog post generated',
+      summary: 'Test Item — Blog post generated',
       details: { model: 'claude-sonnet-4-20250514', latencyMs: 3200, completionTokens: 1500, responsePreview: '# TypeScript Best Practices in 2026\n\nTypeScript has evolved significantly...' },
     });
   }, 5000);

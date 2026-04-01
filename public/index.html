@@ -407,7 +407,7 @@
             📋 Showing sample data — connect your AI agents to see real activity.
           </span>
           <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <button class="setup-btn" onclick="runSetup()" style="margin: 0; padding: 6px 16px; font-size: 12px;">⚡ Auto-Connect My Agents</button>
+            <button class="setup-btn" onclick="runSetupFromBanner()" style="margin: 0; padding: 6px 16px; font-size: 12px;">⚡ Auto-Connect My Agents</button>
             <span style="font-size: 11px; color: var(--text3);">or manually: <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: var(--cyan);">export OPENAI_BASE_URL=http://localhost:3400/proxy/v1</code></span>
           </div>
           <p id="setupResult2" style="margin-top: 6px; font-size: 12px;"></p>
@@ -930,6 +930,23 @@
           setTimeout(() => {
             document.getElementById('setupBanner').style.display = 'none';
           }, 5000);
+        }
+      } catch (e) {
+        result.textContent = '❌ Error: ' + e.message;
+      }
+    }
+
+    async function runSetupFromBanner() {
+      const result = document.getElementById('setupResult2');
+      result.textContent = '⏳ Configuring...';
+      try {
+        const r = await fetch('/api/setup/install', { method: 'POST' });
+        const data = await r.json();
+        if (data.success) {
+          result.innerHTML = data.results?.map(r => `<div>${r}</div>`).join('') || '✅ Done!';
+          result.innerHTML += '<div style="margin-top: 4px; color: var(--green);">✅ Connected! Open any AI tool and its activity will appear here.</div>';
+        } else {
+          result.innerHTML = '❌ ' + (data.error || 'Setup failed');
         }
       } catch (e) {
         result.textContent = '❌ Error: ' + e.message;
